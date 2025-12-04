@@ -1,0 +1,16 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: prestamos-service
+  r2dbc:
+    url: ${R2DBC_URL:r2dbc:postgresql://localhost:5432/vecinosdb}
+    username: ${DB_USER:vecinosuser}
+    password: ${DB_PASSWORD:vecinospass}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

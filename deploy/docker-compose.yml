@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: vecinosdb
+      POSTGRES_USER: vecinosuser
+      POSTGRES_PASSWORD: vecinospass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U vecinosuser -d vecinosdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  objetos-service:
+    build: ../objetos-service
+    environment:
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/vecinosdb
+      SPRING_R2DBC_USERNAME: vecinosuser
+      SPRING_R2DBC_PASSWORD: vecinospass
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD","wget","-qO-","http://localhost:8082/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  prestamos-service:
+    build: ../prestamos-service
+    environment:
+      SPRING_R2DBC_URL: r2dbc:postgresql://postgres:5432/vecinosdb
+      SPRING_R2DBC_USERNAME: vecinosuser
+      SPRING_R2DBC_PASSWORD: vecinospass
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD","wget","-qO-","http://localhost:8081/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api-gateway:
+    build: ../api-gateway
+    environment:
+      OBJETOS_URI: http://objetos-service:8082
+      PRESTAMOS_URI: http://prestamos-service:8081
+    depends_on:
+      objetos-service:
+        condition: service_healthy
+      prestamos-service:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

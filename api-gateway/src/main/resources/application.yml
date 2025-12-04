@@ -1,0 +1,63 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 10000  # 10s
+        response-timeout: 60s   # 60s
+      default-filters:
+        - name: Retry
+          args:
+            retries: 2
+            methods: GET
+            statuses: BAD_GATEWAY, GATEWAY_TIMEOUT, SERVICE_UNAVAILABLE, INTERNAL_SERVER_ERROR
+      routes:
+        # Prestamos: acepta /api/prestamos/** (passthrough)
+        - id: prestamos-service-api
+          uri: ${PRESTAMOS_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/prestamos/**
+        # Prestamos: acepta /prestamos/** y reescribe a /api/prestamos/**
+        - id: prestamos-service-noapi
+          uri: ${PRESTAMOS_URI:http://localhost:8081}
+          predicates:
+            - Path=/prestamos/**
+          filters:
+            - RewritePath=/prestamos/(?<segment>.*), /api/prestamos/${segment}
+        # Prestamos: acepta /prestamos exacto y lo envía a /api/prestamos
+        - id: prestamos-service-root
+          uri: ${PRESTAMOS_URI:http://localhost:8081}
+          predicates:
+            - Path=/prestamos
+          filters:
+            - SetPath=/api/prestamos
+        # Objetos: acepta /api/objetos/** (passthrough)
+        - id: objetos-service-api
+          uri: ${OBJETOS_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/objetos/**
+        # Objetos: acepta /objetos/** y reescribe a /api/objetos/**
+        - id: objetos-service-noapi
+          uri: ${OBJETOS_URI:http://localhost:8082}
+          predicates:
+            - Path=/objetos/**
+          filters:
+            - RewritePath=/objetos/(?<segment>.*), /api/objetos/${segment}
+        # Objetos: acepta /objetos exacto y lo envía a /api/objetos
+        - id: objetos-service-root
+          uri: ${OBJETOS_URI:http://localhost:8082}
+          predicates:
+            - Path=/objetos
+          filters:
+            - SetPath=/api/objetos
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+

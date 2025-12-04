@@ -1,0 +1,52 @@
+services:
+  # Prestamos Service
+  - type: web
+    name: prestamos-service
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./prestamos-service/Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: R2DBC_URL
+        value: r2dbc:postgresql://dpg-d43vto6uk2gs739i7o4g-a.oregon-postgres.render.com:5432/vecinosdb_gbqx?sslMode=require
+      - key: DB_USER
+        value: vecinosuser
+      - key: DB_PASSWORD
+        value: czsdyLvknmnAN1IUkMnXTaIdCRbDSsLy
+
+  # Objetos Service
+  - type: web
+    name: objetos-service
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./objetos-service/Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: R2DBC_URL
+        value: r2dbc:postgresql://dpg-d43vto6uk2gs739i7o4g-a.oregon-postgres.render.com:5432/vecinosdb_gbqx?sslMode=require
+      - key: DB_USER
+        value: vecinosuser
+      - key: DB_PASSWORD
+        value: czsdyLvknmnAN1IUkMnXTaIdCRbDSsLy
+
+  # API Gateway
+  - type: web
+    name: api-gateway
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: PRESTAMOS_URI
+        value: https://prestamos-service-4r04.onrender.com
+      - key: OBJETOS_URI
+        value: https://objetos-service-yqm0.onrender.com
