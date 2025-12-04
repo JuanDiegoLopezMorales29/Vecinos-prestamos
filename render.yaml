@@ -16,7 +16,7 @@ services:
         value: vecinosuser
       - key: DB_PASSWORD
         value: 0HnzjqtULebvEQNWahkPvG5mj1DgVTl2
-  
+
 
   # Objetos Service
   - type: web
@@ -48,6 +48,6 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: PRESTAMOS_URI
-        value: https://prestamos-service-4r04.onrender.com
+        value: https://prestamos-service-tjkq.onrender.com
       - key: OBJETOS_URI
-        value: https://objetos-service-yqm0.onrender.com
+        value: https://objetos-service.onrender.com
